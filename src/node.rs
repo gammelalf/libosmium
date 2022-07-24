@@ -26,6 +26,8 @@ impl NodeRef {
     }
 }
 
+pub enum Node {}
+
 impl Node {
     pub fn location(&self) -> Location {
         unsafe { node_location(self) }

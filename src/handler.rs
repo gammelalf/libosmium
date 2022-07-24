@@ -2,22 +2,21 @@ use std::ffi::c_void;
 use std::marker::PhantomData;
 use std::os::raw::c_char;
 
+use crate::area::Area;
+use crate::node_ref_list::{InnerRing, OuterRing, WayNodeList};
+use crate::node::Node;
+use crate::way::Way;
+
 extern "C" {
     pub fn test(handler: HandlerTable, file: *const c_char);
 }
 
-pub enum Area {}
 pub enum Changeset {}
 pub enum ChangesetDiscussion {}
-pub enum InnerRing {}
-pub enum Node {}
 pub enum OSMObject {}
-pub enum OuterRing {}
 pub enum Relation {}
 pub enum RelationMemberList {}
 pub enum TagList {}
-pub enum Way {}
-pub enum WayNodeList {}
 
 /// Implement this trait to define a [Handler](https://osmcode.org/libosmium/manual.html#handlers)
 pub trait Handler {
