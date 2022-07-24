@@ -1,5 +1,4 @@
 use std::mem::MaybeUninit;
-use crate::handler::Node;
 use crate::location::Location;
 
 /// Reference to a Node

@@ -5,6 +5,8 @@ use std::os::raw::c_char;
 use crate::area::Area;
 use crate::node_ref_list::{InnerRing, OuterRing, WayNodeList};
 use crate::node::Node;
+use crate::object::OSMObject;
+use crate::tag_list::TagList;
 use crate::way::Way;
 
 extern "C" {
@@ -13,10 +15,8 @@ extern "C" {
 
 pub enum Changeset {}
 pub enum ChangesetDiscussion {}
-pub enum OSMObject {}
 pub enum Relation {}
 pub enum RelationMemberList {}
-pub enum TagList {}
 
 /// Implement this trait to define a [Handler](https://osmcode.org/libosmium/manual.html#handlers)
 pub trait Handler {

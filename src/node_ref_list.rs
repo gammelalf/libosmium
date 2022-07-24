@@ -14,7 +14,6 @@
 //! [`Way`]: crate::way::Way
 use crate::node::NodeRef;
 use std::ops::{Deref, DerefMut};
-use crate::location::Location;
 
 pub enum NodeRefList {}
 
