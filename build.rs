@@ -1,4 +1,4 @@
-static FILES: &[&'static str] = &["handler.cpp"];
+static FILES: &[&'static str] = &["handler.cpp", "node.cpp", "node_ref.cpp", "way.cpp"];
 
 fn main() {
     let mut build = cc::Build::new();
