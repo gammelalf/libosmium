@@ -67,22 +67,22 @@ impl OSMObject {
 }
 
 /// Type for OSM user IDs.
-type UserId = u32;
+pub type UserId = u32;
 
 /// Type for OSM object (node, way, or relation) IDs.
-type ObjectId = i64;
+pub type ObjectId = i64;
 
 /// Type for OSM object (node, way, or relation) IDs where we only allow positive IDs.
-type UnsignedObjectId = u64;
+pub type UnsignedObjectId = u64;
 
 /// Type for OSM object version number.
-type ObjectVersion = u32;
+pub type ObjectVersion = u32;
 
 /// A timestamp. Internal representation is an unsigned 32bit integer holding seconds
 /// since epoch (1970-01-01T00:00:00Z), so this will overflow in 2106.
 /// We can use an unsigned integer here, because the OpenStreetMap project was started
 /// long after 1970, so there will never be dates before that.
-type Timestamp = u32;
+pub type Timestamp = u32;
 
 extern "C" {
     fn OSMObject_id(object: &OSMObject) -> ObjectId;

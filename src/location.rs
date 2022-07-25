@@ -42,6 +42,11 @@ impl Location {
 
 impl Display for Location {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} Lat, {} Lon", self.lat(), self.lon())
+        let (mut x1, mut x2) = (self.x / PRECISION, self.x % PRECISION);
+        let (mut y1, mut y2) = (self.y / PRECISION, self.y % PRECISION);
+        x2 = x2.abs(); y2 = y2.abs();
+        let lat = if self.y > 0 { "N" } else { y1 = -y1; "S" };
+        let lon = if self.x > 0 { "E" } else { x1 = -x1; "W" };
+        write!(f, "{}.{}° {} {}.{}° {}", y1, y2, lat, x1, x2, lon)
     }
 }

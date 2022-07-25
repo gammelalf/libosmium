@@ -1,13 +1,48 @@
 use std::marker::PhantomData;
 use std::os::raw::c_char;
 use crate::node_ref_list::{InnerRing, OuterRing};
+use crate::object::ObjectId;
 
 pub enum Area {}
 
 impl Area {
+    /// Was this area created from a way?
+    /// (In contrast to areas created from a relation and their members.)
+    pub fn is_from_way(&self) -> bool {
+        // See original_id for the why
+        self.positive_id() & 1 == 0
+    }
+
+    /// Return the Id of the way or relation this area was created from.
+    pub fn original_id(&self) -> ObjectId {
+        // libosmium uses the inline functions `object_id_to_area_id` and `area_id_to_object_id`
+        // defined in <osmium/osm/area.hpp> to do this kind of conversion.
+        //
+        // From their source code its apparent, that the original id is simply shifted left once
+        // and the newly free least significant bit is used as flag whether the original object
+        // was a way or relation (0 = way, 1 = relation). So to convert back simply shift right once
+        // dumping the flag bit.
+        self.id() >> 1
+    }
+
+    /// Count the number of outer and inner rings of this area.
+    pub fn num_rings(&self) -> (usize, usize) {
+        let rings = unsafe { area_num_rings(self) };
+        (rings.outer, rings.inner)
+    }
+
+    /// Check whether this area is a multipolygon, ie. whether it has more than one outer ring.
+    pub fn is_multipolygon(&self) -> bool {
+        self.num_rings().0 > 1
+    }
+
+    /// Return an iterator over all outer rings.
     pub fn outer_rings(&self) -> impl Iterator<Item=&OuterRing> {
         unsafe { area_outer_rings(self) }
     }
+
+    /// Return an iterator over all inner rings in the given outer ring.
+    // TODO consider making this a method on OuterRing?
     pub fn inner_rings<'a>(&'a self, outer: &'a OuterRing) -> impl Iterator<Item=&'a InnerRing> + 'a {
         unsafe { area_inner_rings(self, outer) }
     }
@@ -58,8 +93,16 @@ impl<'a, T: Ring> Iterator for ItemIterator<'a, T> {
 }
 
 extern "C" {
+    fn area_num_rings(area: &Area) -> NumRings;
     fn area_outer_rings(area: &Area) -> ItemIteratorRange<Outer>;
     fn area_inner_rings<'a>(area: &'a Area, outer: &'a OuterRing) -> ItemIteratorRange<'a, Inner>;
     fn item_iterator_outer_ring_increment(iter: &mut ItemIterator<Outer>);
     fn item_iterator_inner_ring_increment(iter: &mut ItemIterator<Inner>);
+}
+
+/// Boilerplate to ensure well defined layout for `(usize, usize)`
+#[repr(C)]
+struct NumRings {
+    outer: usize,
+    inner: usize,
 }
