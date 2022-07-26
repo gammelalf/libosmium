@@ -1,15 +1,9 @@
-static FILES: &[&'static str] = &[
-    "libosmium.cpp",
-];
-
 fn main() {
-    let mut build = cc::Build::new();
-    for &file in FILES.iter() {
-        println!("cargo:rerun-if-changed=src/{}", file);
-        build.file(format!("src/{}", file));
-    }
-    build.cpp(true)
+    println!("cargo:rerun-if-changed=src/libosmium.cpp");
+    cc::Build::new()
+        .cpp(true)
         .include("libosmium/include")
+        .file("src/libosmium.cpp")
         .compile("osmium");
-    println!("cargo:rustc-link-lib=static=z");
+    println!("cargo:rustc-link-lib=z");
 }
