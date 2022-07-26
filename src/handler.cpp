@@ -1,6 +1,10 @@
 #include "osmium/handler.hpp"      // Handler and all object types
+#include "osmium/handler/node_locations_for_ways.hpp"
+#include "osmium/index/map/flex_mem.hpp"
 #include "osmium/io/pbf_input.hpp" // osmium::io::Reader for pbf files
 #include "osmium/visitor.hpp"      // osmium::apply
+#include "osmium/area/assembler.hpp"
+#include "osmium/area/multipolygon_manager.hpp"
 
 template <class T>
 using HandlerFunc = void (void *, const T &);
@@ -38,10 +42,59 @@ public:
     void flush() { flush_handler(self_pointer); }
 };
 
+using way_creator_map = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
+using way_creator_type = osmium::handler::NodeLocationsForWays<way_creator_map>;
+using area_creator_type = osmium::area::MultipolygonManager<osmium::area::Assembler>;
+
 extern "C" {
-    void test(RustHandler handler, char *file) {
+    void apply(RustHandler handler, char *path) {
+        osmium::io::File file{path};
+
         osmium::io::Reader reader{file};
-        osmium::apply(reader, handler);
+        osmium::apply(
+            reader,
+            handler
+        );
+        reader.close();
+    }
+
+    void apply_with_ways(RustHandler handler, char *path) {
+        osmium::io::File file{path};
+
+        way_creator_map map;
+        way_creator_type way_creator{map};
+        way_creator.ignore_errors();
+
+        osmium::io::Reader reader{file};
+        osmium::apply(
+            reader,
+            way_creator,
+            handler
+        );
+        reader.close();
+    }
+
+    void apply_with_areas(RustHandler handler, char *path, osmium::area::AssemblerConfig config) {
+        const osmium::io::File file{path};
+
+        way_creator_map map;
+        way_creator_type way_creator{map};
+        way_creator.ignore_errors();
+
+        area_creator_type area_creator{config};
+        osmium::relations::read_relations(file, area_creator);
+
+        osmium::io::Reader reader{file, osmium::io::read_meta::no};
+        osmium::apply(
+            reader,
+            way_creator,
+            handler,
+            area_creator.handler(
+                [&handler](const osmium::memory::Buffer &area_buffer) {
+                    osmium::apply(area_buffer, handler);
+                }
+            )
+        );
         reader.close();
     }
 }
