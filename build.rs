@@ -1,11 +1,5 @@
 static FILES: &[&'static str] = &[
-    "area.cpp",
-    "handler.cpp",
-    "node.cpp",
-    "node_ref_list.cpp",
-    "object.cpp",
-    "tag_list.cpp",
-    "way.cpp",
+    "libosmium.cpp",
 ];
 
 fn main() {
