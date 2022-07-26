@@ -1,30 +1,43 @@
-#include "osmium/osm/area.hpp"
-#include "osmium/memory/item_iterator.hpp"
-#include "osmium/osm/node.hpp"
-#include "osmium/osm/way.hpp"
-#include "osmium/osm/tag.hpp"
-#include "osmium/memory/collection.hpp"
-#include "osmium/osm/object.hpp"
-#include "osmium/osm/node_ref_list.hpp"
-#include "osmium/osm/node_ref.hpp"
-#include "osmium/handler.hpp"      // Handler and all object types
-#include "osmium/handler/node_locations_for_ways.hpp"
-#include "osmium/index/map/flex_mem.hpp"
-#include "osmium/io/pbf_input.hpp" // osmium::io::Reader for pbf files
-#include "osmium/visitor.hpp"      // osmium::apply
+// Construct areas from relations and ways
 #include "osmium/area/assembler.hpp"
 #include "osmium/area/multipolygon_manager.hpp"
 
-// node.rs
-extern "C" {
-    osmium::Location node_location(const osmium::Node &node) {
-        return node.location();
-    }
+// Handler class
+#include "osmium/handler.hpp"
 
-    void node_set_location(osmium::Node &node, const osmium::Location &location) {
-        node.set_location(location);
-    }
-}
+// A handler to populate all ways' nodes' locations
+#include "osmium/handler/node_locations_for_ways.hpp"
+#include "osmium/index/map/flex_mem.hpp"
+
+// Support reading of pbf files
+#include "osmium/io/pbf_input.hpp"
+
+// Iterators for a TagList's tags and an Area's rings
+#include "osmium/memory/collection.hpp"
+#include "osmium/memory/item_iterator.hpp"
+
+// Area class
+#include "osmium/osm/area.hpp"
+
+// Node class
+#include "osmium/osm/node.hpp"
+
+// Simplified node representation used as children in Areas and Ways
+#include "osmium/osm/node_ref.hpp"
+#include "osmium/osm/node_ref_list.hpp"
+
+// OSMObject class
+#include "osmium/osm/object.hpp"
+
+// Way class
+#include "osmium/osm/way.hpp"
+
+// TagList class
+#include "osmium/osm/tag.hpp"
+
+// Function for reading a file and applying handlers on all items
+#include "osmium/visitor.hpp"
+
 
 // area.rs
 extern "C" {
@@ -49,27 +62,27 @@ extern "C" {
     }
 }
 
-// way.rs
+// node.rs
 extern "C" {
-    const osmium::WayNodeList &way_nodes_const(const osmium::Way &way) {
-        return way.nodes();
+    osmium::Location node_location(const osmium::Node &node) {
+        return node.location();
     }
 
-    osmium::WayNodeList &way_nodes(osmium::Way &way) {
-        return way.nodes();
+    void node_set_location(osmium::Node &node, const osmium::Location &location) {
+        node.set_location(location);
     }
 }
 
-// tag_list.rs
+// node_ref_list.rs
 extern "C" {
-    const char* tag_list_get_value_by_key(const osmium::TagList &list, const char *key) {
-        return list.get_value_by_key(key);
+    const osmium::NodeRef &node_ref_list_begin_const(const osmium::NodeRefList &list) {
+        return *list.cbegin();
     }
-    osmium::memory::CollectionIterator<const osmium::Tag> tag_list_begin(const osmium::TagList &list) {
-        return list.begin();
+    osmium::NodeRef &node_ref_list_begin(osmium::NodeRefList &list) {
+        return *list.begin();
     }
-    osmium::memory::CollectionIterator<const osmium::Tag> tag_list_end(const osmium::TagList &list) {
-        return list.end();
+    size_t node_ref_list_size(const osmium::NodeRefList &list) {
+        return list.size();
     }
 }
 
@@ -88,16 +101,27 @@ extern "C" {
     OSMObject(const osmium::TagList &, tags)
 }
 
-// node_ref_list.rs
+// tag_list.rs
 extern "C" {
-    const osmium::NodeRef &node_ref_list_begin_const(const osmium::NodeRefList &list) {
-        return *list.cbegin();
+    const char* tag_list_get_value_by_key(const osmium::TagList &list, const char *key) {
+        return list.get_value_by_key(key);
     }
-    osmium::NodeRef &node_ref_list_begin(osmium::NodeRefList &list) {
-        return *list.begin();
+    osmium::memory::CollectionIterator<const osmium::Tag> tag_list_begin(const osmium::TagList &list) {
+        return list.begin();
     }
-    size_t node_ref_list_size(const osmium::NodeRefList &list) {
-        return list.size();
+    osmium::memory::CollectionIterator<const osmium::Tag> tag_list_end(const osmium::TagList &list) {
+        return list.end();
+    }
+}
+
+// way.rs
+extern "C" {
+    const osmium::WayNodeList &way_nodes_const(const osmium::Way &way) {
+        return way.nodes();
+    }
+
+    osmium::WayNodeList &way_nodes(osmium::Way &way) {
+        return way.nodes();
     }
 }
 
