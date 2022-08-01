@@ -4,8 +4,8 @@ use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 use crate::area::Area;
-use crate::node_ref_list::{InnerRing, OuterRing, WayNodeList};
 use crate::node::Node;
+use crate::node_ref_list::{InnerRing, OuterRing, WayNodeList};
 use crate::object::OSMObject;
 use crate::tag_list::TagList;
 use crate::way::Way;
@@ -13,7 +13,11 @@ use crate::way::Way;
 extern "C" {
     pub fn apply(handler: HandlerTable, file: *const c_char);
     pub fn apply_with_ways(handler: HandlerTable, file: *const c_char);
-    pub fn apply_with_areas(handler: HandlerTable, file: *const c_char, config: AreaAssemblerConfig);
+    pub fn apply_with_areas(
+        handler: HandlerTable,
+        file: *const c_char,
+        config: AreaAssemblerConfig,
+    );
 }
 
 pub enum Changeset {}
@@ -53,7 +57,7 @@ pub trait Handler {
             tag_list: Self::tag_list as *const (),
             way: Self::way as *const (),
             way_node_list: Self::way_node_list as *const (),
-            flush: Self::flush as *const ()
+            flush: Self::flush as *const (),
         }
     }
 }
@@ -107,7 +111,7 @@ impl Default for AreaAssemblerConfig {
             create_old_style_polygons: true,
             create_way_polygons: true,
             keep_type_tag: false,
-            ignore_invalid_locations: false
+            ignore_invalid_locations: false,
         }
     }
 }
