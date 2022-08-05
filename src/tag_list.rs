@@ -5,18 +5,17 @@ use std::os::raw::c_char;
 pub enum TagList {}
 
 impl TagList {
-    pub(crate) fn get_value_by_key(&self, key: &CStr) -> Option<&CStr> {
-        let key = key.as_ptr();
-        let value = unsafe { tag_list_get_value_by_key(self, key) };
-        if value.is_null() {
-            None
-        } else {
-            Some(unsafe { CStr::from_ptr(value) })
+    pub fn get<'a>(&'a self, key: &'_ str) -> Option<&'a str> {
+        for (k, v) in self.into_iter() {
+            if k == key {
+                return Some(v);
+            }
         }
+        return None;
     }
 }
 impl<'a> IntoIterator for &'a TagList {
-    type Item = (&'a CStr, &'a CStr);
+    type Item = (&'a str, &'a str);
     type IntoIter = TagIterator<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -32,25 +31,33 @@ impl<'a> IntoIterator for &'a TagList {
 pub struct TagIterator<'a> {
     current: *const c_char,
     end: *const c_char,
-    list_lifetime: PhantomData<&'a ()>,
+    list_lifetime: PhantomData<&'a TagList>,
 }
 impl<'a> Iterator for TagIterator<'a> {
-    type Item = (&'a CStr, &'a CStr);
+    type Item = (&'a str, &'a str);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current == self.end {
-            None
-        } else {
+        while self.current < self.end {
             let key_start = self.current;
-            unsafe {self.current = after_null(self.current);}
+            unsafe {
+                self.current = after_null(self.current);
+            }
+
             let value_start = self.current;
-            unsafe {self.current = after_null(self.current);}
-            Some(
-                unsafe {
-                    (CStr::from_ptr(key_start), CStr::from_ptr(value_start))
-                }
-            )
+            unsafe {
+                self.current = after_null(self.current);
+            }
+
+            let (key, value) = unsafe { (CStr::from_ptr(key_start), CStr::from_ptr(value_start)) };
+
+            if let (Ok(key), Ok(value)) = (key.to_str(), value.to_str()) {
+                return Some((key, value));
+            } else {
+                eprint!("[libosmium]: got invalid utf-8 in tag -> skipping...");
+                continue;
+            }
         }
+        None
     }
 }
 
@@ -63,7 +70,6 @@ unsafe fn after_null(mut ptr: *const c_char) -> *const c_char {
 }
 
 extern "C" {
-    fn tag_list_get_value_by_key(list: &TagList, key: *const c_char) -> *const c_char;
     fn tag_list_begin(list: &TagList) -> *const c_char;
     fn tag_list_end(list: &TagList) -> *const c_char;
 }
