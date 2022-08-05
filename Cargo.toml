@@ -2,6 +2,13 @@
 name = "libosmium"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Rust binding and wrapper for libosmium"
+homepage = "https://github.com/gammelalf/libosmium"
+repository = "https://github.com/gammelalf/libosmium"
+readme = "README.md"
+keyword = ["api", "osm"]
+categories = ["api-bindings"]
 build = "build.rs"
 links = "z"
 
