@@ -9,6 +9,14 @@ repository = "https://github.com/gammelalf/libosmium"
 readme = "README.md"
 keyword = ["api", "osm"]
 categories = ["api-bindings"]
+include = [
+	"libosmium/include/*",
+	"libosmium/LICENSE",
+	"src/*",
+	"build.rs",
+	"Cargo.toml",
+	"LICENSE",
+]
 build = "build.rs"
 links = "z"
 
