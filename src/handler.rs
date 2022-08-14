@@ -1,4 +1,4 @@
-use std::ffi::c_void;
+use std::ffi::{c_void, CStr, CString};
 use std::marker::PhantomData;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
@@ -10,21 +10,49 @@ use crate::object::OSMObject;
 use crate::tag_list::TagList;
 use crate::way::Way;
 
-extern "C" {
-    pub fn apply(handler: HandlerTable, file: *const c_char);
-    pub fn apply_with_ways(handler: HandlerTable, file: *const c_char);
-    pub fn apply_with_areas(
-        handler: HandlerTable,
-        file: *const c_char,
-        config: AreaAssemblerConfig,
-    );
-}
-
 pub enum Changeset {}
 pub enum ChangesetDiscussion {}
 pub enum Relation {}
 pub enum RelationMemberList {}
 
+extern "C" {
+    /// error_buffer is expected to be 256 bytes in size
+    /// and c++ will only write 255, leaving the last one NUL.
+    fn apply(handler: HandlerTable, file: *const c_char, error_buffer: *mut c_char);
+    fn apply_with_ways(handler: HandlerTable, file: *const c_char, error_buffer: *mut c_char);
+    fn apply_with_areas(
+        handler: HandlerTable,
+        file: *const c_char,
+        error_buffer: *mut c_char,
+        config: AreaAssemblerConfig,
+    );
+}
+
+/// Macro to wrap ffi's apply functions
+macro_rules! impl_apply {
+    ($function:ident, $handler:expr, $file:expr) => {
+        impl_apply!($function, $handler, $file, )
+    };
+    ($function:ident, $handler:expr, $file:expr, $($args:expr),*) => {{
+        let file = CString::new($file).expect("File can't contain a NUL character");
+
+        let mut error: [c_char; 256] = [0; 256];
+        unsafe { $function($handler.as_table(), file.as_ptr(), error.as_mut_ptr(), $($args),*) };
+        let error = error;
+
+        // Empty error message -> no error
+        if error[0] == 0 {
+            Ok(())
+        } else {
+            // Safe, because error is existing memory on stack
+            // and c++ only writes to 255 of the 256 bytes, so the last one will always stay a NUL.
+            let cstr = unsafe { CStr::from_ptr(error.as_ptr()) };
+            Err(CString::from(cstr))
+        }
+    }};
+}
+
+/// Representation for a [`Handler`] instance which is can be passed to cpp.
 /// Implement this trait to define a [Handler](https://osmcode.org/libosmium/manual.html#handlers)
 pub trait Handler {
     fn area(&mut self, _area: &Area) {}
@@ -60,9 +88,18 @@ pub trait Handler {
             flush: Self::flush as *const (),
         }
     }
+
+    fn apply(&mut self, file: &str) -> Result<(), CString> {
+        impl_apply!(apply, self, file)
+    }
+    fn apply_with_ways(&mut self, file: &str) -> Result<(), CString> {
+        impl_apply!(apply_with_ways, self, file)
+    }
+    fn apply_with_areas(&mut self, file: &str, config: AreaAssemblerConfig) -> Result<(), CString> {
+        impl_apply!(apply_with_areas, self, file, config)
+    }
 }
 
-/// Representation for a [`Handler`] instance which is can be passed to cpp.
 ///
 /// It is a function table in combination with a pointer to the [`Handler`] instance.
 /// So it's basically a `dyn Handler` which was manually written to be FFI compatible.

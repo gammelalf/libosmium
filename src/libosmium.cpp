@@ -1,3 +1,5 @@
+#include <string.h>
+
 // Construct areas from relations and ways
 #include "osmium/area/assembler.hpp"
 #include "osmium/area/multipolygon_manager.hpp"
@@ -123,6 +125,7 @@ extern "C" {
 }
 
 // handler.rs
+
 template <class T>
 using HandlerFunc = void (void *, const T &);
 
@@ -164,54 +167,66 @@ using way_creator_type = osmium::handler::NodeLocationsForWays<way_creator_map>;
 using area_creator_type = osmium::area::MultipolygonManager<osmium::area::Assembler>;
 
 extern "C" {
-    void apply(RustHandler handler, char *path) {
-        osmium::io::File file{path};
+    void apply(RustHandler handler, const char *path, char *error_buffer) {
+        try {
+            osmium::io::File file{path};
 
-        osmium::io::Reader reader{file};
-        osmium::apply(
-            reader,
-            handler
-        );
-        reader.close();
+            osmium::io::Reader reader{file};
+            osmium::apply(
+                reader,
+                handler
+            );
+            reader.close();
+        } catch (std::exception& e) {
+            strncpy(error_buffer, e.what(), 255);
+        }
     }
 
-    void apply_with_ways(RustHandler handler, char *path) {
-        osmium::io::File file{path};
+    void apply_with_ways(RustHandler handler, const char *path, char *error_buffer) {
+        try {
+            osmium::io::File file{path};
 
-        way_creator_map map;
-        way_creator_type way_creator{map};
-        way_creator.ignore_errors();
+            way_creator_map map;
+            way_creator_type way_creator{map};
+            way_creator.ignore_errors();
 
-        osmium::io::Reader reader{file};
-        osmium::apply(
-            reader,
-            way_creator,
-            handler
-        );
-        reader.close();
+            osmium::io::Reader reader{file};
+            osmium::apply(
+                reader,
+                way_creator,
+                handler
+            );
+            reader.close();
+        } catch (std::exception& e) {
+            strncpy(error_buffer, e.what(), 255);
+        }
     }
 
-    void apply_with_areas(RustHandler handler, char *path, osmium::area::AssemblerConfig config) {
-        const osmium::io::File file{path};
+    void apply_with_areas(RustHandler handler, const char *path, char *error_buffer, osmium::area::AssemblerConfig config) {
+        try {
+            const osmium::io::File file{path};
 
-        way_creator_map map;
-        way_creator_type way_creator{map};
-        way_creator.ignore_errors();
+            way_creator_map map;
+            way_creator_type way_creator{map};
+            way_creator.ignore_errors();
 
-        area_creator_type area_creator{config};
-        osmium::relations::read_relations(file, area_creator);
+            area_creator_type area_creator{config};
+            osmium::relations::read_relations(file, area_creator);
 
-        osmium::io::Reader reader{file, osmium::io::read_meta::no};
-        osmium::apply(
-            reader,
-            way_creator,
-            handler,
-            area_creator.handler(
-                [&handler](const osmium::memory::Buffer &area_buffer) {
-                    osmium::apply(area_buffer, handler);
-                }
-            )
-        );
-        reader.close();
+            osmium::io::Reader reader{file, osmium::io::read_meta::no};
+            osmium::apply(
+                reader,
+                way_creator,
+                handler,
+                area_creator.handler(
+                    [&handler](const osmium::memory::Buffer &area_buffer) {
+                        osmium::apply(area_buffer, handler);
+                    }
+                )
+            );
+            reader.close();
+        } catch (std::exception& e) {
+            strncpy(error_buffer, e.what(), 255);
+        }
     }
 }
