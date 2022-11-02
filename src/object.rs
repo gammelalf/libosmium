@@ -4,14 +4,13 @@ use std::ops::{Deref, DerefMut};
 use crate::tag_list::TagList;
 
 /// Base class for OSM 's objects:
-/// - [`Node`]
-/// - [`Way`]
+/// - [Node](crate::node::Node)
+/// - [Way](crate::way::Way)
 /// - Relation
-/// - [`Area`]
+/// - [Area](crate::Area)
 ///
-/// [`Node`]: crate::node::Node
-/// [`Way`]: crate::way::Way
-/// [`Area`]: crate::area::Area
+/// Since the above types are c++ subclasses, a (for example) Way pointer is also a valid OSMObject.
+/// To reflect this these types implement [Deref] and [DerefMut] which just uses an pointer cast.
 pub enum OSMObject {}
 
 impl OSMObject {
@@ -102,12 +101,14 @@ macro_rules! impl_subclass {
         impl Deref for $class {
             type Target = OSMObject;
 
+            /// Cast the pointer into an [OSMObject] pointer
             fn deref(&self) -> &Self::Target {
                 unsafe { std::mem::transmute(self) }
             }
         }
 
         impl DerefMut for $class {
+            /// Cast the pointer into an [OSMObject] pointer
             fn deref_mut(&mut self) -> &mut Self::Target {
                 unsafe { std::mem::transmute(self) }
             }

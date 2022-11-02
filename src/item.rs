@@ -7,6 +7,9 @@ use crate::node_ref_list::{InnerRing, OuterRing, WayNodeList};
 use crate::tag_list::TagList;
 use crate::way::Way;
 
+/// This type is the base class responsible for libosmium's custom memory management.
+///
+/// It stores an object's dynamic size and its actual subclass as an enum.
 #[repr(C)]
 pub struct Item {
     _size: ItemSize,
@@ -44,18 +47,39 @@ impl Item {
     }
 }
 
-/// Enum for converting an item's reference into a reference of its actual subclass.
+/// Enum for converting an [Item] reference into a reference of its actual subclass.
 pub enum ItemRef<'a> {
+    /// A [Node] reference
     Node(&'a Node),
+
+    /// A [Way] reference
     Way(&'a Way),
+
+    /// A [Relation] reference
     Relation(&'a Relation),
+
+    /// An [Area] reference
     Area(&'a Area),
+
+    /// A [Changeset] reference
     Changeset(&'a Changeset),
+
+    /// A [TagList] reference
     TagList(&'a TagList),
+
+    /// A [WayNodeList] reference
     WayNodeList(&'a WayNodeList),
+
+    /// A [RelationMemberList] reference
     RelationMemberList(&'a RelationMemberList),
+
+    /// An [OuterRing] reference
     OuterRing(&'a OuterRing),
+
+    /// An [InnerRing] reference
     InnerRing(&'a InnerRing),
+
+    /// A [ChangesetDiscussion] reference
     ChangesetDiscussion(&'a ChangesetDiscussion),
 }
 

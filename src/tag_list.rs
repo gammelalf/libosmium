@@ -1,7 +1,15 @@
+//! defines the [TagList] as well as its [iterator](TagIterator).
+//!
+//! It also provides an [owned version](OwnedTagList) for mostly for testing purposes.
+
 use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::os::raw::c_char;
 
+/// A tag list is a map from tag names to their values.
+///
+/// To be memory efficient it is stored as a slice of key value pairs.
+/// Keys and Values are separated using a `NUL` and the slice is terminated with a double `NUL`.
 pub enum TagList {}
 
 impl TagList {
@@ -33,6 +41,11 @@ impl<'a> IntoIterator for &'a TagList {
     }
 }
 
+/// Iterator over [TagList]'s key value pairs
+///
+/// This iterator handles the `NUL` terminator and converts c strings into rust strings.
+/// If a c string doesn't not contain valid utf-8 it will be skipped and logged to stderr.
+/// However by osm specification everything _should_ be utf-8.
 #[repr(C)]
 pub struct TagIterator<'a> {
     current: *const c_char,

@@ -1,6 +1,9 @@
 use std::fmt::{Display, Formatter};
 
 const UNDEFINED_COORDINATE: i32 = i32::MAX;
+/// The precision longitude and latitude are stored with.
+///
+/// This constant comes directly from the cpp source code.
 pub const PRECISION: i32 = 10000000;
 
 /// A gps coordinate in angles of latitude and longitude
@@ -11,19 +14,25 @@ pub const PRECISION: i32 = 10000000;
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct Location {
+    /// Longitude in `1/PRECISION` degrees.
     pub raw_x: i32,
+
+    /// Latitude in `1/PRECISION` degrees.
     pub raw_y: i32,
 }
 
 impl Location {
+    /// Returns true if at least one of the coordinates is defined.
     pub fn is_defined(&self) -> bool {
         self.raw_x != UNDEFINED_COORDINATE || self.raw_y != UNDEFINED_COORDINATE
     }
 
+    /// Returns true if both coordinates are undefined.
     pub fn is_undefined(&self) -> bool {
         self.raw_x == UNDEFINED_COORDINATE && self.raw_y == UNDEFINED_COORDINATE
     }
 
+    /// Check whether the coordinates are inside the usual bounds (-180<=lon<=180, -90<=lat<=90).
     pub fn is_valid(&self) -> bool {
         self.raw_x >= -180 * PRECISION
             && self.raw_x <= 180 * PRECISION
@@ -31,10 +40,12 @@ impl Location {
             && self.raw_y <= 90 * PRECISION
     }
 
+    /// Get longitude.
     pub fn lon(&self) -> f64 {
         self.raw_x as f64 / PRECISION as f64
     }
 
+    /// Get latitude.
     pub fn lat(&self) -> f64 {
         self.raw_y as f64 / PRECISION as f64
     }
