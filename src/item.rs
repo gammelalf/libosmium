@@ -89,6 +89,7 @@ pub enum ItemRef<'a> {
 /// their subclass as an enum at the beginning right after the size.
 #[repr(u16)]
 #[non_exhaustive]
+#[allow(dead_code)]
 pub enum ItemType {
     Undefined = 0x00,
     Node = 0x01,

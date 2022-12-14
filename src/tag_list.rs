@@ -27,7 +27,28 @@ impl TagList {
     pub fn is_empty(&self) -> bool {
         unsafe { tag_list_begin(self) == tag_list_end(self) }
     }
+
+    /// Get the raw underlying memory as slice.
+    ///
+    /// See [TagList] for a description of this memory's layout.
+    ///
+    /// This method is also exposed via an [AsRef<\[u8\]>] implementation.
+    pub fn as_bytes(&self) -> &[u8] {
+        unsafe {
+            let begin = tag_list_begin(self) as *const u8;
+            let end = tag_list_end(self);
+            std::slice::from_raw_parts(begin, end as usize - begin as usize)
+        }
+    }
 }
+
+impl AsRef<[u8]> for TagList {
+    /// See [TagList] for a description of this memory's layout.
+    fn as_ref(&self) -> &[u8] {
+        self.as_bytes()
+    }
+}
+
 impl<'a> IntoIterator for &'a TagList {
     type Item = (&'a str, &'a str);
     type IntoIter = TagIterator<'a>;
@@ -98,6 +119,7 @@ extern "C" {
 /// The actual data is stored in the same way as in [`TagList`]
 /// and therefore uses the same accessing logic. But it manages its own memory using a [`Vec<u8>`]
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct OwnedTagList(pub Vec<u8>);
 
 impl OwnedTagList {
@@ -136,11 +158,7 @@ impl OwnedTagList {
 impl From<&TagList> for OwnedTagList {
     /// Copy a TagList's memory into an owned `Vec`
     fn from(tag_list: &TagList) -> Self {
-        let bytes = unsafe {
-            let begin = tag_list_begin(tag_list) as *const u8;
-            let end = tag_list_end(tag_list);
-            std::slice::from_raw_parts(begin, end as usize - begin as usize)
-        };
+        let bytes = tag_list.as_bytes();
         let mut tag_list = OwnedTagList::new();
         tag_list.0.extend_from_slice(bytes);
         tag_list
