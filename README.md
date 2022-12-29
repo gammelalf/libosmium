@@ -31,5 +31,5 @@ apt install build-essential libboost-dev libprotozero-dev zlib1g-dev
 
 Install for arch:
 ```bash
-pacman -Sy cmake make boost-libs protobuf zlib
+pacman -Sy cmake make boost-libs protozero zlib
 ```

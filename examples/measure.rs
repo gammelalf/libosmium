@@ -1,5 +1,5 @@
 use libosmium::handler::Handler;
-use libosmium::node::Node;
+use libosmium::Node;
 use std::env;
 
 #[derive(Debug)]
