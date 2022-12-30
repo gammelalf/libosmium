@@ -36,6 +36,11 @@ impl Item {
         self._size
     }
 
+    /// Get the item's type
+    pub fn item_type(&self) -> ItemType {
+        self._type
+    }
+
     /// Convert an item's reference into a reference of its actual subclass
     pub fn cast(&self) -> Option<ItemRef> {
         unsafe {
@@ -61,6 +66,7 @@ impl Item {
 }
 
 /// Enum for converting an [Item] reference into a reference of its actual subclass.
+#[derive(Copy, Clone)]
 pub enum ItemRef<'a> {
     /// A [Node] reference
     Node(&'a Node),
@@ -102,7 +108,7 @@ pub enum ItemRef<'a> {
 /// their subclass as an enum at the beginning right after the size.
 #[repr(u16)]
 #[non_exhaustive]
-#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ItemType {
     Undefined = 0x00,
     Node = 0x01,
