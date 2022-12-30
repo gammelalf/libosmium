@@ -17,14 +17,27 @@ pub struct Item {
     _flags_and_padding: u16,
 }
 
+/// Align items to this many bytes
+const ALIGN_BYTES: usize = 8;
+
 impl Item {
+    /// Get the item's data as byte slice padded to [`aligned_size`](Self::aligned_size)
+    pub fn as_bytes(&self) -> &[u8] {
+        unsafe { std::slice::from_raw_parts(transmute(self), self.aligned_size()) }
+    }
+
+    /// Get the item's dynamic size aligned to `ALIGN_BYTES`
+    pub fn aligned_size(&self) -> usize {
+        (self._size as usize + ALIGN_BYTES - 1) & !(ALIGN_BYTES - 1)
+    }
+
     /// Get the item's dynamic size
     pub fn byte_size(&self) -> ItemSize {
         self._size
     }
 
     /// Convert an item's reference into a reference of its actual subclass
-    pub fn parse(&self) -> Option<ItemRef> {
+    pub fn cast(&self) -> Option<ItemRef> {
         unsafe {
             Some(match self._type {
                 ItemType::Node => ItemRef::Node(transmute(self)),
@@ -112,25 +125,3 @@ pub enum ItemType {
 /// instead of using std collections which would put them on extra heap allocations.
 /// Therefore all items are dynamically sized and store their size at their beginning.
 pub type ItemSize = u32;
-
-macro_rules! impl_subclass {
-    ($class:path) => {
-        impl AsRef<Item> for $class {
-            fn as_ref(&self) -> &Item {
-                unsafe { transmute(self) }
-            }
-        }
-
-        impl AsMut<Item> for $class {
-            fn as_mut(&mut self) -> &mut Item {
-                unsafe { transmute(self) }
-            }
-        }
-    };
-}
-impl_subclass!(crate::tag_list::TagList);
-impl_subclass!(crate::handler::ChangesetDiscussion);
-impl_subclass!(crate::handler::RelationMemberList);
-impl_subclass!(crate::node_ref_list::NodeRefList);
-impl_subclass!(crate::handler::Changeset);
-impl_subclass!(crate::object::OSMObject);

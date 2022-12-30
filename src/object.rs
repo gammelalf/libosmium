@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::ops::{Deref, DerefMut};
+
 use crate::tag_list::TagList;
 
 /// Base class for OSM 's objects:
@@ -10,7 +10,7 @@ use crate::tag_list::TagList;
 /// - [Area](crate::Area)
 ///
 /// Since the above types are c++ subclasses, a (for example) Way pointer is also a valid OSMObject.
-/// To reflect this these types implement [Deref] and [DerefMut] which just uses an pointer cast.
+/// To reflect this these types implement [Deref](std::ops::Deref) and [DerefMut](std::ops::DerefMut) which just uses an pointer cast.
 pub enum OSMObject {}
 
 impl OSMObject {
@@ -95,27 +95,3 @@ extern "C" {
     fn OSMObject_user(object: &OSMObject) -> *const c_char;
     fn OSMObject_tags(object: &OSMObject) -> &TagList;
 }
-
-macro_rules! impl_subclass {
-    ($class:path) => {
-        impl Deref for $class {
-            type Target = OSMObject;
-
-            /// Cast the pointer into an [OSMObject] pointer
-            fn deref(&self) -> &Self::Target {
-                unsafe { std::mem::transmute(self) }
-            }
-        }
-
-        impl DerefMut for $class {
-            /// Cast the pointer into an [OSMObject] pointer
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                unsafe { std::mem::transmute(self) }
-            }
-        }
-    }
-}
-impl_subclass!(crate::area::Area);
-impl_subclass!(crate::node::Node);
-impl_subclass!(crate::handler::Relation);
-impl_subclass!(crate::way::Way);
