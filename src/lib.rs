@@ -30,6 +30,9 @@ pub mod tag_list;
 mod way;
 pub use way::Way;
 
+mod buffer;
+pub use buffer::ItemBuffer;
+
 mod impl_subclass {
     macro_rules! impl_as_ref {
         ($class:path as $base:path) => {
