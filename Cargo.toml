@@ -1,6 +1,6 @@
 [package]
 name = "libosmium"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "Rust binding and wrapper for libosmium"
