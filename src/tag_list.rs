@@ -62,6 +62,12 @@ impl<'a> IntoIterator for &'a TagList {
     }
 }
 
+impl std::fmt::Debug for TagList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        debug(self, f)
+    }
+}
+
 /// Iterator over [TagList]'s key value pairs
 ///
 /// This iterator handles the `NUL` terminator and converts c strings into rust strings.
@@ -178,6 +184,21 @@ impl<'a> IntoIterator for &'a OwnedTagList {
             list_lifetime: PhantomData,
         }
     }
+}
+
+impl std::fmt::Debug for OwnedTagList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        debug(self, f)
+    }
+}
+
+fn debug<'t>(tags: impl IntoIterator<Item=(&'t str, &'t str)>, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut map = f.debug_map();
+    for (key, value) in tags {
+        map.key(&key);
+        map.value(&value);
+    }
+    map.finish()
 }
 
 /// Nice syntax for creating an [`OwnedTagList`] using literals.
