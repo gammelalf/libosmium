@@ -12,7 +12,7 @@ pub mod handler;
 pub use handler::Handler;
 
 mod item;
-pub use item::{Item, ItemRef};
+pub use item::{Item, ItemRef, ItemType};
 
 mod location;
 pub use location::{Location, PRECISION};
@@ -49,7 +49,7 @@ mod impl_subclass {
                     unsafe { std::mem::transmute(self) }
                 }
             }
-        }
+        };
     }
     macro_rules! impl_subclass {
         ($class:path as Item) => {

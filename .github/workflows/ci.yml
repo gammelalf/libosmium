@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install native dependencies
+        run: sudo apt-get install -y libprotozero-dev
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # libosmium uses a test data submodule that does not appear to be needed,
+          # so we don't need to use "recursive"
+          submodules: true
+      - run: source .cargo-husky/hooks/pre-push

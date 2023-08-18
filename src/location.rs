@@ -69,6 +69,6 @@ impl Display for Location {
             x1 = -x1;
             "W"
         };
-        write!(f, "{}.{}° {} {}.{}° {}", y1, y2, lat, x1, x2, lon)
+        write!(f, "{y1}.{y2}° {lat} {x1}.{x2}° {lon}")
     }
 }

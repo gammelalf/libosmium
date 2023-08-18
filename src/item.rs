@@ -23,7 +23,7 @@ const ALIGN_BYTES: usize = 8;
 impl Item {
     /// Get the item's data as byte slice padded to [`aligned_size`](Self::aligned_size)
     pub fn as_bytes(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(transmute(self), self.aligned_size()) }
+        unsafe { std::slice::from_raw_parts(self as *const Item as *const u8, self.aligned_size()) }
     }
 
     /// Get the item's dynamic size aligned to `ALIGN_BYTES`
@@ -109,6 +109,7 @@ pub enum ItemRef<'a> {
 #[repr(u16)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[allow(missing_docs)]
 pub enum ItemType {
     Undefined = 0x00,
     Node = 0x01,
