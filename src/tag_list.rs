@@ -20,7 +20,7 @@ impl TagList {
                 return Some(v);
             }
         }
-        return None;
+        None
     }
 
     /// Are there any tags at all?
@@ -57,7 +57,7 @@ impl<'a> IntoIterator for &'a TagList {
         TagIterator {
             current: unsafe { tag_list_begin(self) },
             end: unsafe { tag_list_end(self) },
-            list_lifetime: PhantomData::default(),
+            list_lifetime: PhantomData,
         }
     }
 }
@@ -192,7 +192,10 @@ impl std::fmt::Debug for OwnedTagList {
     }
 }
 
-fn debug<'t>(tags: impl IntoIterator<Item=(&'t str, &'t str)>, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+fn debug<'t>(
+    tags: impl IntoIterator<Item = (&'t str, &'t str)>,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
     let mut map = f.debug_map();
     for (key, value) in tags {
         map.key(&key);

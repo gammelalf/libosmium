@@ -1,4 +1,5 @@
 use std::mem::MaybeUninit;
+
 use crate::location::Location;
 
 /// Reference to a [Node]
@@ -37,7 +38,9 @@ impl Node {
 
     /// set the node's location
     pub fn set_location(&mut self, location: &Location) {
-        unsafe { set_node_location(self, location); }
+        unsafe {
+            set_node_location(self, location);
+        }
     }
 }
 

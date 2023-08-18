@@ -1,6 +1,9 @@
+#![allow(dead_code)]
+
+use std::env;
+
 use libosmium::handler::Handler;
 use libosmium::Node;
-use std::env;
 
 #[derive(Debug)]
 struct BoundingBox {
@@ -69,7 +72,7 @@ fn main() -> Result<(), String> {
         .apply(&file)
         .map_err(|cstr| cstr.to_string_lossy().to_string())?;
 
-    println!("{:?}", handler);
+    println!("{handler:?}");
     println!("{:?}", Center::from(handler));
 
     Ok(())

@@ -1,7 +1,6 @@
 use std::env;
 
-use libosmium::{ItemBuffer, ItemRef, Node};
-use libosmium::Handler;
+use libosmium::{Handler, ItemBuffer, ItemRef, Node};
 
 struct NodeBuffer {
     buffer: ItemBuffer,

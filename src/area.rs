@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 use std::os::raw::c_char;
+
 use crate::node_ref_list::{InnerRing, OuterRing};
 use crate::object::ObjectId;
 
@@ -56,13 +57,16 @@ impl Area {
     }
 
     /// Return an iterator over all outer rings.
-    pub fn outer_rings(&self) -> impl Iterator<Item=&OuterRing> {
+    pub fn outer_rings(&self) -> impl Iterator<Item = &OuterRing> {
         unsafe { area_outer_rings(self) }
     }
 
     /// Return an iterator over all inner rings in the given outer ring.
     // TODO consider making this a method on OuterRing?
-    pub fn inner_rings<'a>(&'a self, outer: &'a OuterRing) -> impl Iterator<Item=&'a InnerRing> + 'a {
+    pub fn inner_rings<'a>(
+        &'a self,
+        outer: &'a OuterRing,
+    ) -> impl Iterator<Item = &'a InnerRing> + 'a {
         unsafe { area_inner_rings(self, outer) }
     }
 }
@@ -99,14 +103,16 @@ trait Ring: Sized {
     type Target;
     unsafe fn increment(_iter: &mut ItemIterator<Self>);
 }
-struct Outer; impl Ring for Outer {
+struct Outer;
+impl Ring for Outer {
     type Target = OuterRing;
     #[inline]
     unsafe fn increment(iter: &mut ItemIterator<Self>) {
         item_iterator_outer_ring_increment(iter);
     }
 }
-struct Inner; impl Ring for Inner {
+struct Inner;
+impl Ring for Inner {
     type Target = InnerRing;
     #[inline]
     unsafe fn increment(iter: &mut ItemIterator<Self>) {
