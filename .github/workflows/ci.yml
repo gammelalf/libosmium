@@ -17,7 +17,7 @@ jobs:
       - name: Install native dependencies
         run: sudo apt-get install -y libprotozero-dev
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # libosmium uses a test data submodule that does not appear to be needed,
           # so we don't need to use "recursive"
